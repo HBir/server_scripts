@@ -8,8 +8,8 @@
 # [✓] Internet connection is alive
 
 function checkStatus {
-  local var COMMAND="$1"
-  local var NAME="$2"
+  local var NAME="$1"
+  local var COMMAND="$2"
   local var PORT="$3"
   local var ADDITIONAL_CMD="$4"
 
@@ -30,8 +30,8 @@ function checkStatus {
   fi
 }
 
-checkStatus 'pihole status' 'Pihole' '80' 'pihole status | grep --color=none "[✗].*"'
-checkStatus 'nc -vz 10.1.0.166 1880' 'node-red' '1880'
-checkStatus 'sudo wg show' 'Wireguard' '51820'
-checkStatus 'nc -vz 10.1.0.166 8581' 'Homebridge' '8581'
-checkStatus 'ping -c 1 google.com' 'Internet connection'
+checkStatus 'Pihole' 'pihole status' '80' 'pihole status | grep --color=none "[✗].*"'
+checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' '1880'
+checkStatus 'Wireguard' 'sudo wg show' '51820'
+checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' '8581'
+checkStatus 'Internet connection' 'ping -c 1 google.com'
