@@ -34,4 +34,4 @@ checkStatus 'Pihole' 'pihole status' '80' 'pihole status | grep --color=none "[â
 checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' '1880'
 checkStatus 'Wireguard' 'sudo wg show' '51820'
 checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' '8581'
-checkStatus 'Internet connection' 'ping -c 1 8.8.8.8'
+checkStatus 'Internet connection' 'ping -c 1 -W 1 8.8.8.8'
