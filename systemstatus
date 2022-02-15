@@ -7,31 +7,39 @@
 # [✓] Homebridge is alive (:8581)
 # [✓] Internet connection is alive
 
+
+if [[ -z $NOCOLOR ]]; then
+  RED='\e[0;31m'
+  GREEN='\e[0;32m'
+  PLAIN='\e[0m'
+else
+ RED=''
+ GREEN=''
+ PLAIN=''
+fi
+
 function checkStatus {
   local var NAME="$1"
   local var COMMAND="$2"
   local var PORT="$3"
   local var ADDITIONAL_CMD="$4"
-
-  ${COMMAND} &> /dev/null
+  eval "${COMMAND} &> /dev/null"
   local var STATUS=$?
 
   if [[ ${STATUS} -eq "0" ]]; then
-    printf "\e[0;32m[✓]\e[0m ${NAME} is alive"
+    printf "${GREEN}[✓]${PLAIN} ${NAME} is alive"
     [[ ! -z $PORT ]] && printf " (:${PORT})"
-    if [[ ! -z $ADDITIONAL_CMD ]]; then
-      eval "$ADDITIONAL_CMD | xargs echo -n"
-    fi
+    [[ ! -z $ADDITIONAL_CMD ]] && eval "$ADDITIONAL_CMD | xargs echo -n"
     printf "\n"
   else
-    printf "\e[0;31m[✗] ${NAME} is down"
+    printf "${RED}[✗] ${NAME} is down"
     [[ ! -z $PORT ]] && printf " (:${PORT})"
-    printf "\e[0m\n"
+    printf "${PLAIN}\n"
   fi
 }
 
 checkStatus 'Pihole' 'pihole status' '80' 'pihole status | grep --color=none "[✗].*"'
 checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' '1880'
-checkStatus 'Wireguard' 'sudo wg show' '51820'
+checkStatus 'Wireguard' 'sudo wg show | grep "interface"' '51820'
 checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' '8581'
 checkStatus 'Internet connection' 'ping -c 1 -W 1 8.8.8.8'
