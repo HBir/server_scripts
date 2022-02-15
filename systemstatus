@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Example output:
+# [✓] Pihole is alive (:80)
+# [✗] node-red is down (:1880)
+# [✓] Wireguard is alive (:51820)
+# [✓] Homebridge is alive (:8581)
+# [✓] Internet connection is alive
+
 function checkStatus {
   local var COMMAND="$1"
   local var NAME="$2"
