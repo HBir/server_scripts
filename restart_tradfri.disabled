@@ -1,0 +1,5 @@
+#!/bin/bash
+tmux kill-session -t tradfri
+fuser -k 8080/tcp
+sleep 1
+tmux new-session -d -s tradfri 'nodemon /home/pi/Code/node_tradfri_ifttt/app.js'

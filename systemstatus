@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+function checkStatus {
+  local var COMMAND="$1"
+  local var NAME="$2"
+  local var PORT="$3"
+  local var ADDITIONAL_CMD="$4"
+
+  ${COMMAND} &> /dev/null
+  local var STATUS=$?
+
+  if [[ ${STATUS} -eq "0" ]]; then
+    printf "\e[0;32m[✓]\e[0m ${NAME} is alive"
+    [[ ! -z $PORT ]] && printf " (:${PORT})"
+    if [[ ! -z $ADDITIONAL_CMD ]]; then
+      eval "$ADDITIONAL_CMD | xargs echo -n"
+    fi
+    printf "\n"
+  else
+    printf "\e[0;31m[✗] ${NAME} is down"
+    [[ ! -z $PORT ]] && printf " (:${PORT})"
+    printf "\e[0m\n"
+  fi
+}
+
+checkStatus 'pihole status' 'Pihole' '80' 'pihole status | grep --color=none "[✗].*"'
+checkStatus 'nc -vz 10.1.0.166 1880' 'node-red' '1880'
+checkStatus 'sudo wg show' 'Wireguard' '51820'
+checkStatus 'nc -vz 10.1.0.166 8581' 'Homebridge' '8581'
+checkStatus 'ping -c 1 google.com' 'Internet connection'
