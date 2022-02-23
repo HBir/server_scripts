@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+runindir() { (cd "$1" && shift && eval "$@"); }
+
+find . -type d |
+  grep -v "/$" |
+  while read folder;
+    do
+      runindir "$folder" ~/Scripts/brename
+  done

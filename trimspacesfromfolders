@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+DRYRUN=$1
+findAllFolders() {
+  local var DEPTH="$1"
+
+  find . -mindepth 1 -maxdepth 1 -type d |
+    while read folder;
+      do
+        (cd "$folder" && findAllFolders $DEPTH"━━");
+      done
+  find . -mindepth 1 -maxdepth 1 -type d -printf '%P\n' |
+    while read subfolder;
+    do
+      local var NEW_NAME="$(echo ${subfolder// /_})"
+      if [ "$subfolder" != "$NEW_NAME" ]; then
+        if [[ ! -z $DRYRUN ]]; then
+          echo "┣$DEPTH" $(echo "[DRYRUN]" "$subfolder" "->" "$NEW_NAME")
+        else
+          echo "┣$DEPTH" $(mv -vn "$subfolder" "$NEW_NAME")
+        fi
+      else
+        echo "┣$DEPTH $subfolder"
+      fi
+    done
+}
+findAllFolders ""

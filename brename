@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 BATCH_ID=$(eval 'echo $RANDOM | md5sum | head -c 3; echo;')
-echo $BATCH_ID
+echo $(pwd) $BATCH_ID
 
 ls -1prt | \
   grep -v "/$" | \
