@@ -28,21 +28,23 @@ function checkStatus {
 
   if [[ ${STATUS} -eq "0" ]]; then
     printf "${GREEN}[✓]${PLAIN} ${NAME} is alive "
-    [[ ! -z $PORT ]] && printf "(:${PORT})"
+    [[ ! -z $PORT ]] && printf "(${PORT}) "
     [[ ! -z $ADDITIONAL_CMD ]] && eval "$ADDITIONAL_CMD | xargs echo -n"
     printf "\n"
   else
-    printf "${RED}[✗] ${NAME} is down"
-    [[ ! -z $PORT ]] && printf " (:${PORT})"
+    printf "${RED}[✗] ${NAME} is down "
+    [[ ! -z $PORT ]] && printf "(:${PORT}) "
     printf "${PLAIN}\n"
   fi
 }
 
-checkStatus 'Pihole' 'pihole status' '80' 'pihole status | grep --color=none "[✗].*"'
-checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' '1880'
+hostname -I
+checkStatus 'Pihole' 'pihole status' ':80' 'pihole status | grep --color=none "[✗].*"'
+checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' ':1880'
 # checkStatus 'Wireguard' 'sudo wg show | grep "interface"' '51820'
-checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' '8581'
-checkStatus 'IKEA Gateway' 'ping -c 1 -W 1 10.1.0.36' '5683'
-checkStatus 'Reolink' 'ping -c 1 -W 1 10.1.0.221' '1935'
+checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' ':8581'
+checkStatus 'IKEA Gateway' 'ping -c 1 -W 1 10.1.0.36' ':5683'
+checkStatus 'Reolink' 'ping -c 1 -W 1 10.1.0.221' ':1935'
+checkStatus 'External HDD' 'cat /proc/mounts | grep /media/pi/HDD' '/media/pi/HDD' 'sudo hdparm -C /dev/sda2  | grep -oP ": .*"'
 # TV and Speakers?
 checkStatus 'Internet connection' 'ping -c 1 -W 1 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'

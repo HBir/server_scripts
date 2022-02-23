@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+BATCH_ID=$(eval 'echo $RANDOM | md5sum | head -c 3; echo;')
+echo $BATCH_ID
+
+ls -1prt | \
+  grep -v "/$" | \
+  cat -n | \
+  while read n f; \
+    do mv -vn "${f}" "$(printf "%04d" $n)_${BATCH_ID}.${f##*.}"; \
+  done
