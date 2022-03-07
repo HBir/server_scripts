@@ -10,12 +10,12 @@
 
 if [[ -z $NOCOLOR ]]; then
   RED='\e[0;31m'
-  GREEN='\e[0;32m'
-  PLAIN='\e[0m'
+  GRN='\e[0;32m'
+  RST='\e[0m'
 else
  RED=''
- GREEN=''
- PLAIN=''
+ GRN=''
+ RST=''
 fi
 
 function checkStatus {
@@ -23,28 +23,42 @@ function checkStatus {
   local var COMMAND="$2"
   local var PORT="$3"
   local var ADDITIONAL_CMD="$4"
+
   eval "${COMMAND} &> /dev/null"
   local var STATUS=$?
 
   if [[ ${STATUS} -eq "0" ]]; then
-    printf "${GREEN}[✓]${PLAIN} ${NAME} is alive "
+    printf "${GRN}[✓]${RST} ${NAME} "
     [[ ! -z $PORT ]] && printf "(${PORT}) "
     [[ ! -z $ADDITIONAL_CMD ]] && eval "$ADDITIONAL_CMD | xargs echo -n"
     printf "\n"
   else
-    printf "${RED}[✗] ${NAME} is down "
-    [[ ! -z $PORT ]] && printf "(:${PORT}) "
-    printf "${PLAIN}\n"
+    printf "${RED}[✗]  ${NAME} is down "
+    [[ ! -z $PORT ]] && printf "(${PORT}) "
+    printf "${RST}\n"
   fi
 }
 
-hostname -I
 checkStatus 'Pihole' 'pihole status' ':80' 'pihole status | grep --color=none "[✗].*"'
-checkStatus 'node-red' 'nc -vz 10.1.0.166 1880' ':1880'
-# checkStatus 'Wireguard' 'sudo wg show | grep "interface"' '51820'
+checkStatus 'Node-red' 'nc -vz 10.1.0.166 1880' ':1880'
 checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' ':8581'
-checkStatus 'IKEA Gateway' 'ping -c 1 -W 1 10.1.0.36' ':5683'
-checkStatus 'Reolink' 'ping -c 1 -W 1 10.1.0.221' ':1935'
-checkStatus 'External HDD' 'cat /proc/mounts | grep /media/pi/HDD' '/media/pi/HDD' 'sudo hdparm -C /dev/sda2  | grep -oP ": .*"'
-# TV and Speakers?
-checkStatus 'Internet connection' 'ping -c 1 -W 1 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
+checkStatus 'Transmission' 'nc -vz 10.1.0.166 9091' ':9091' 'transmission-remote -tactive -l | grep -oP ": .*" | xargs echo'
+checkStatus 'Plex' 'nc -vz 10.1.0.166 32400' ':32400' 'curl --silent http://10.1.0.166:32400/status/sessions -H "X-Plex-Token: LY_6F1bXZb_gAJgrYzkq" -H "accept: application/json" | jq -r .MediaContainer.size | echo : $? "clients"'
+checkStatus 'External HDD' 'cat /proc/mounts | grep /mnt/usb' '/mnt/usb' 'sudo hdparm -C /dev/sda2  | grep -oP ": .*"'
+checkStatus 'VPN' 'systemctl status openvpn@se396' '' 'systemctl status openvpn@se396 | grep -Po "Active: \K.*"'
+checkStatus 'Internet connection' 'fping -c1 -t500 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
+checkStatus 'IKEA Gateway' 'fping -c1 -t500 10.1.0.36' '36:5683'
+
+
+#-------------
+if [[ $1 == "--extended" ]]; then
+  checkStatus 'Hannes' 'fping -c1 -t300 10.1.0.194'
+  checkStatus 'Klava' 'fping -c1 -t300 10.1.0.21'
+  checkStatus 'Reolink' 'fping -c1 -t300 10.1.0.221' '221:1935'
+  checkStatus 'Samsung TV' 'fping -c1 -t300 10.1.0.56' '.56'
+  checkStatus 'Kitchen Speaker' 'fping -c1 -t300 10.1.0.173' '.173'
+  checkStatus 'Living room Speaker' 'fping -c1 -t300 10.1.0.122' '.122'
+fi
+
+
+# checkStatus 'some error test' 'exit 1'
