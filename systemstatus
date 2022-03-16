@@ -45,9 +45,9 @@ checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' ':8581'
 checkStatus 'Transmission' 'nc -vz 10.1.0.166 9091' ':9091' 'transmission-remote -tactive -l | grep -oP ": .*" | xargs echo'
 checkStatus 'Plex' 'nc -vz 10.1.0.166 32400' ':32400' 'curl --silent http://10.1.0.166:32400/status/sessions -H "X-Plex-Token: LY_6F1bXZb_gAJgrYzkq" -H "accept: application/json" | jq -r .MediaContainer.size | echo : $? "clients"'
 checkStatus 'External HDD' 'cat /proc/mounts | grep /mnt/usb' '/mnt/usb' 'sudo hdparm -C /dev/sda2  | grep -oP ": .*"'
-checkStatus 'VPN' 'systemctl status openvpn@se396' '' 'systemctl status openvpn@se396 | grep -Po "Active: \K.*"'
-checkStatus 'Internet connection' 'fping -c1 -t500 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
 checkStatus 'IKEA Gateway' 'fping -c1 -t500 10.1.0.36' '36:5683'
+checkStatus 'Internet connection' 'fping -c1 -t500 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
+checkStatus 'VPN' 'systemctl status openvpn@se396' '' 'systemctl status openvpn@se396 | grep -Po "Active: \K.*"'
 
 
 #-------------
@@ -61,4 +61,4 @@ if [[ $1 == "--extended" ]]; then
 fi
 
 
-# checkStatus 'some error test' 'exit 1'
+# checkStatus 'some error test' 'false'
