@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [[ $1 == "reset" ]]; then
+  echo -ne "\033]6;1;bg;*;default\a"
+  exit 0
+fi
+
+echo -ne "\033]6;1;bg;red;brightness;$1\a"
+echo -ne "\033]6;1;bg;green;brightness;$2\a" 
+echo -ne "\033]6;1;bg;blue;brightness;$3\a"
