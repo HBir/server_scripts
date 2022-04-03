@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Dependencies:
+# - fping
+# - netcat
+# - dnsutils
+# - curl
+# - jq
+
 # Example output:
 # [✓] Pihole is alive (:80)
 # [✗] node-red is down (:1880)
@@ -11,6 +18,7 @@
 if [[ -z $NOCOLOR ]]; then
   RED='\e[0;31m'
   GRN='\e[0;32m'
+  YLW='\e[0;36m'
   RST='\e[0m'
 else
  RED=''
@@ -39,26 +47,59 @@ function checkStatus {
   fi
 }
 
-checkStatus 'Pihole' 'pihole status' ':80' 'pihole status | grep --color=none "[✗].*"'
-checkStatus 'Node-red' 'nc -vz 10.1.0.166 1880' ':1880'
-checkStatus 'Homebridge' 'nc -vz 10.1.0.166 8581' ':8581'
-checkStatus 'Transmission' 'nc -vz 10.1.0.166 9091' ':9091' 'transmission-remote -tactive -l | grep -oP ": .*" | xargs echo'
-checkStatus 'Plex' 'nc -vz 10.1.0.166 32400' ':32400' 'curl --silent http://10.1.0.166:32400/status/sessions -H "X-Plex-Token: LY_6F1bXZb_gAJgrYzkq" -H "accept: application/json" | jq -r .MediaContainer.size | echo : $? "clients"'
-checkStatus 'External HDD' 'cat /proc/mounts | grep /mnt/usb' '/mnt/usb' 'sudo hdparm -C /dev/sda2  | grep -oP ": .*"'
-checkStatus 'IKEA Gateway' 'fping -c1 -t500 10.1.0.36' '36:5683'
-checkStatus 'Internet connection' 'fping -c1 -t500 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
-checkStatus 'VPN' 'systemctl status openvpn@se396' '' 'systemctl status openvpn@se396 | grep -Po "Active: \K.*"'
+function printInfo {
+  local var NAME="$1"
+  local var COMMAND="$2"
+  local var ADDITIONAL_CMD="$3"
 
+
+  INFO_RES=$(eval "${COMMAND}")
+  local var STATUS=$?
+
+  if [[ ${STATUS} -eq "0" ]]; then
+    printf "${YLW}[i]${RST} ${NAME} ${INFO_RES}"
+    [[ ! -z $ADDITIONAL_CMD ]] && eval "$ADDITIONAL_CMD | xargs echo -n"
+    printf "\n"
+  else
+    printf "${RED}[✗]  ${NAME} "
+    printf "${RST}\n"
+  fi
+}
+
+UPTIME=`printf "%d days, %02dh%02dm%02ds" "$days" "$hours" "$mins" "$secs"`
+read one five fifteen rest < /proc/loadavg
+
+printInfo 'Uptime:\t\t' 'uptime -p'
+printInfo 'External HDD:\t' 'sudo hdparm -C /dev/sda2  | grep -Po ":  \K.*"'
+printInfo 'Memory:\t\t' "echo `free | grep Mem | awk '{print $3/1024}'` 'MB' / `cat /proc/meminfo | grep MemTotal | awk {'print $2/1024'}` 'MB'"
+printInfo 'Load Averages:\t' 'echo ${one}, ${five}, ${fifteen} "(1, 5, 15 min)"'
+printInfo 'Running Processes:\t' 'ps ax | wc -l | tr -d " "'
+printInfo 'Ip Addresses:\t' 'echo `hostname -I | /usr/bin/cut -d " " -f 1` "," `wget -q -O - http://icanhazip.com/ | tail`'
+# checkStatus 'External HDD' 'cat /proc/mounts | grep /mnt/usb' '/mnt/usb' 'sudo hdparm -C /dev/sda2  | grep -Po ": \K.*"'
+# checkStatus 'Internet connection' 'fping -c1 -t500 8.8.8.8' '' 'dig +short myip.opendns.com @resolver1.opendns.com'
+# checkStatus 'VPN' 'nordvpn status | grep "Status: Connected"' ':53' 'nordvpn status | grep -Po "server: \K.*"'
+
+printf "\n"
+/home/pi/Scripts/dockerstatus
 
 #-------------
 if [[ $1 == "--extended" ]]; then
+checkStatus 'IKEA Gateway' 'fping -c1 -t500 10.1.0.36' '36:5683'
   checkStatus 'Hannes' 'fping -c1 -t300 10.1.0.194'
   checkStatus 'Klava' 'fping -c1 -t300 10.1.0.21'
   checkStatus 'Reolink' 'fping -c1 -t300 10.1.0.221' '221:1935'
   checkStatus 'Samsung TV' 'fping -c1 -t300 10.1.0.56' '.56'
   checkStatus 'Kitchen Speaker' 'fping -c1 -t300 10.1.0.173' '.173'
   checkStatus 'Living room Speaker' 'fping -c1 -t300 10.1.0.122' '.122'
+  # printf "\n"
+  # /home/pi/Scripts/dockerstatus
 fi
+
+# checkStatus 'Pihole' 'nc -vz 10.1.0.9 53' ':53' # 'docker exec -it pihole pihole status | grep --color=none "[✗].*"'
+# checkStatus 'Node-red' 'nc -vz 10.1.0.9 1880' ':1880'
+# checkStatus 'Homebridge' 'nc -vz 10.1.0.9 8581' ':8581'
+# checkStatus 'Transmission' 'nc -vz 10.1.0.9 9091' ':9091' #'transmission-remote -tactive -l | grep -oP ": .*" | xargs echo'
+# checkStatus 'Plex' 'nc -vz 10.1.0.9 32400' ':32400' 'curl --silent http://10.1.0.9:32400/status/sessions -H "X-Plex-Token: LY_6F1bXZb_gAJgrYzkq" -H "accept: application/json" | jq -r .MediaContainer.size | echo : $? "clients"'
 
 
 # checkStatus 'some error test' 'false'
