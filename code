@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+[[ -n $1 ]] && OPEN_PATH=$1 || OPEN_PATH=.
+
+CLIENT_TARGET="hannes@$(echo $SSH_CONNECTION | awk '{print $1}')" # Good way of getting Client name?
+REMOTE_HOST_TARGET=pi # ${USER}@$(echo $SSH_CONNECTION | awk '{print $3}')
+
+ssh "${CLIENT_TARGET}" "/usr/local/bin/code --remote ssh-remote+${REMOTE_HOST_TARGET} $(realpath $OPEN_PATH)"
